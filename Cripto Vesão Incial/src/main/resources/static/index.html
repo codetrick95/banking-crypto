@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Exchange</title>
+    <style>
+        :root { --primary: #FCD535; --dark: #1E2329; --light: #FAFAFA; --text: #1E2329; --gray: #707A8A; --green: #0ECB81; --red: #F6465D; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; display: flex; background-color: #F5F5F5; color: var(--text); }
+        
+        /* Menu Lateral */
+        .sidebar { width: 220px; background-color: var(--dark); color: white; height: 100vh; padding: 20px; box-sizing: border-box; position: fixed; }
+        .sidebar h2 { color: var(--primary); margin-bottom: 40px; text-align: center; }
+        .menu-item { display: block; padding: 15px; color: #EAECEF; text-decoration: none; cursor: pointer; border-radius: 8px; margin-bottom: 5px; transition: 0.2s;}
+        .menu-item:hover, .menu-item.active { background-color: #2B3139; color: var(--primary); font-weight: bold; }
+        
+        /* Conteúdo Principal */
+        .main { margin-left: 220px; padding: 40px; width: 100%; position: relative; }
+        .section { display: none; animation: fadeIn 0.3s; }
+        .section.active { display: block; } 
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Notificações (Substituto do Alert) */
+        #notification-area {
+            position: fixed; top: 20px; right: 20px; z-index: 1000;
+            min-width: 300px; text-align: center; display: none;
+        }
+        .toast { padding: 15px; border-radius: 8px; color: white; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 10px; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .toast-success { background-color: var(--green); }
+        .toast-error { background-color: var(--red); }
+        .toast-info { background-color: var(--primary); color: black; }
+
+        /* Cartões */
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .balance-title { font-size: 1.1em; color: var(--gray); }
+        .balance-value { font-size: 2.5em; font-weight: bold; margin: 10px 0; color: var(--dark); }
+
+        /* Tabelas e Listas */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; color: var(--gray); font-size: 0.9em; padding: 15px 0; border-bottom: 1px solid #EAECEF; }
+        td { padding: 15px 0; border-bottom: 1px solid #EAECEF; vertical-align: middle; }
+        
+        /* Botões */
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-right: 5px; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; transform: scale(1.05); }
+        .btn-buy { background-color: var(--green); color: white; }
+        .btn-sell { background-color: var(--red); color: white; }
+        .btn-ai { background-color: #7b1fa2; color: white; }
+        .btn-danger { background-color: #ff3b30; color: white; border: 1px solid #ff3b30; }
+        .btn-outline { background: transparent; border: 1px solid var(--gray); color: var(--gray); }
+
+        #ai-result { margin-bottom: 20px; padding: 20px; background: #f3e5f5; border-radius: 8px; border-left: 5px solid #7b1fa2; display: none; color: #4a148c; }
+        
+        input { border: 1px solid #ddd; border-radius: 4px; font-size: 1em; padding: 10px; width: 100%; box-sizing: border-box; }
+        
+        /* Estilo da Lista de Ativos */
+        .asset-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
+        .asset-item:last-child { border-bottom: none; }
+        .asset-symbol { font-weight: bold; font-size: 1.1em; }
+        .asset-qty { color: var(--gray); }
+    </style>
+</head>
+<body>
+
+<div id="notification-area"></div>
+
+<div class="sidebar">
+    <h2>🪙 CryptoEx</h2>
+    <div class="menu-item active" onclick="navegar('dashboard')">📊 Mercado</div>
+    <div class="menu-item" onclick="navegar('wallet')">💼 Carteira</div>
+    <div class="menu-item" onclick="navegar('history')">📝 Histórico</div>
+    <div class="menu-item" onclick="navegar('profile')">👤 Perfil</div>
+</div>
+
+<div class="main">
+    
+    <div id="dashboard" class="section active">
+        <h1>Mercado de Criptomoedas</h1>
+        <div id="ai-result"></div>
+        <div class="card">
+            <table id="market-table">
+                <thead><tr><th>Moeda</th><th>Preço Atual</th><th>Ações</th></tr></thead>
+                <tbody id="market-list"><tr><td colspan="3">Carregando...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="wallet" class="section">
+        <h1>Minha Carteira</h1>
+        
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div class="balance-title">Saldo Disponível</div>
+                <div class="balance-value" id="wallet-balance">R$ 0,00</div>
+            </div>
+            <button class="btn btn-outline" onclick="zerarCarteira()">🗑️ Zerar Tudo</button>
+        </div>
+
+        <div class="card">
+            <h3>💰 Adicionar Fundos</h3>
+            <p style="color:gray; font-size: 0.9em;">Digite o valor para depósito:</p>
+            <div style="display: flex; gap: 10px; margin-top: 10px; align-items: center;">
+                <input type="text" id="input-deposito" placeholder="R$ 0,00" style="width: 250px; font-size: 1.2em;" onkeyup="formatarInputMoeda(this)">
+                <button class="btn btn-buy" style="height: 45px;" onclick="fazerDeposito()">Confirmar Depósito</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Seus Ativos</h3>
+            <div id="wallet-assets" style="margin-top: 10px;">
+                </div>
+        </div>
+    </div>
+
+    <div id="history" class="section">
+        <h1>Histórico</h1>
+        <div class="card">
+            <table>
+                <thead><tr><th>Data</th><th>Tipo</th><th>Moeda</th><th>Qtd</th><th>Preço</th></tr></thead>
+                <tbody id="history-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="profile" class="section">
+        <h1>Perfil</h1>
+        <div class="card">
+            <p><strong>Nome:</strong> <br><input type="text" id="input-nome" style="margin-top:5px;"></p>
+            <p><strong>Email:</strong> <br><input type="email" id="input-email" style="margin-top:5px;"></p>
+            <p><strong>CPF:</strong> <br><input type="text" id="input-cpf" style="margin-top:5px;"></p>
+            <button class="btn btn-buy" onclick="salvarPerfil()" style="margin-top: 15px;">💾 Salvar Alterações</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- SISTEMA DE NOTIFICAÇÃO (TOAST) ---
+    function mostrarNotificacao(mensagem, tipo) {
+        const area = document.getElementById('notification-area');
+        area.style.display = 'block';
+        
+        const div = document.createElement('div');
+        div.className = `toast toast-${tipo}`; // tipo = success, error, info
+        div.innerText = mensagem;
+        
+        area.appendChild(div);
+        
+        // Remove a mensagem depois de 3 segundos
+        setTimeout(() => {
+            div.remove();
+            if(area.childElementCount === 0) area.style.display = 'none';
+        }, 3500);
+    }
+
+    // --- FORMATAÇÃO DE DINHEIRO NO INPUT ---
+    function formatarInputMoeda(elemento) {
+        let valor = elemento.value;
+        
+        // Remove tudo que não é dígito
+        valor = valor.replace(/\D/g, "");
+        
+        // Divide por 100 para ter os centavos (Ex: 2000 -> 20.00)
+        valor = (valor / 100).toFixed(2) + "";
+        
+        // Troca ponto por vírgula
+        valor = valor.replace(".", ",");
+        
+        // Adiciona ponto de milhar (Ex: 1000,00 -> 1.000,00)
+        valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+        
+        // Adiciona o R$ no começo
+        elemento.value = "R$ " + valor;
+    }
+
+    // --- UTILITÁRIOS ---
+    function formatarDinheiro(valor) {
+        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function navegar(secaoId) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+        document.getElementById(secaoId).classList.add('active');
+        event.target.classList.add('active');
+        if(secaoId === 'wallet' || secaoId === 'history') carregarCarteira();
+        if(secaoId === 'profile') carregarPerfil();
+    }
+
+    // --- CARREGAMENTO DE DADOS ---
+    async function carregarMercado() {
+        try {
+            const res = await fetch('/moedas');
+            const moedas = await res.json();
+            const tbody = document.getElementById('market-list');
+            tbody.innerHTML = '';
+
+            moedas.forEach(moeda => {
+                let visual = '', cor = 'black';
+                if (moeda.precoAtual > moeda.precoAnterior) { visual = '⬆️'; cor = '#0ECB81'; }
+                else if (moeda.precoAtual < moeda.precoAnterior) { visual = '⬇️'; cor = '#F6465D'; }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${moeda.simbolo}</strong><br><span style="color:gray;font-size:0.8em">${moeda.nome}</span></td>
+                    <td style="font-weight:bold; color:${cor}">${formatarDinheiro(moeda.precoAtual)} ${visual}</td>
+                    <td>
+                        <button class="btn btn-ai" onclick="consultarIA('${moeda.nome}')">🤖 IA</button>
+                        <button class="btn btn-buy" onclick="negociar('comprar', '${moeda.simbolo}')">Comprar</button>
+                        <button class="btn btn-sell" onclick="negociar('vender', '${moeda.simbolo}')">Vender</button>
+                    </td>`;
+                tbody.appendChild(tr);
+            });
+        } catch(e) { console.error("Erro mercado:", e); }
+    }
+
+    async function carregarCarteira() {
+        try {
+            const res = await fetch('/moedas/carteira');
+            const carteira = await res.json();
+
+            document.getElementById('wallet-balance').innerText = formatarDinheiro(carteira.saldo);
+
+            // Lista de Ativos Melhorada
+            const lista = document.getElementById('wallet-assets');
+            lista.innerHTML = '';
+            let tem = false;
+            for (const [sim, qtd] of Object.entries(carteira.moedas)) {
+                if (qtd > 0) {
+                    tem = true;
+                    lista.innerHTML += `
+                        <div class="asset-item">
+                            <div>
+                                <div class="asset-symbol">${sim}</div>
+                                <div class="asset-qty">Quantidade: ${qtd.toFixed(4)}</div>
+                            </div>
+                            <button class="btn btn-sell" style="font-size:0.8em" onclick="negociar('vender', '${sim}')">Vender</button>
+                        </div>`;
+                }
+            }
+            if(!tem) lista.innerHTML = '<div style="color:gray; padding:20px; text-align:center">Sua carteira está vazia. Compre moedas no Mercado!</div>';
+
+            // Histórico
+            const histBody = document.getElementById('history-list');
+            histBody.innerHTML = '';
+            const hist = (carteira.historico || []).reverse();
+            if(hist.length === 0) histBody.innerHTML = '<tr><td colspan="5">Sem transações.</td></tr>';
+            else {
+                hist.forEach(tx => {
+                    histBody.innerHTML += `
+                        <tr>
+                            <td>${tx.dataFormatada || tx.dataHora}</td>
+                            <td style="color:${tx.tipo==='COMPRA'?'#0ECB81':'#F6465D'};font-weight:bold">${tx.tipo}</td>
+                            <td>${tx.simboloMoeda}</td>
+                            <td>${tx.quantidade}</td>
+                            <td>${formatarDinheiro(tx.precoNaEpoca)}</td>
+                        </tr>`;
+                });
+            }
+        } catch(e) { console.error("Erro carteira", e); }
+    }
+
+    // --- AÇÕES DO USUÁRIO ---
+    
+    async function fazerDeposito() {
+        const campo = document.getElementById('input-deposito');
+        let valorTexto = campo.value;
+
+        // Limpa a formatação para mandar pro Java (Tira R$, tira ponto, troca vírgula por ponto)
+        // Ex: "R$ 2.000,00" vira "2000.00"
+        let valorLimpo = valorTexto.replace("R$ ", "").replace(/\./g, "").replace(",", ".");
+        
+        if (!valorLimpo || parseFloat(valorLimpo) <= 0) { 
+            mostrarNotificacao("Digite um valor válido!", "error"); 
+            return; 
+        }
+
+        try {
+            const res = await fetch(`/moedas/depositar?valor=${valorLimpo}`, { method: 'POST' });
+            const msg = await res.text();
+            
+            mostrarNotificacao(msg, "success"); // Usa nossa notificação bonita
+            campo.value = ''; 
+            carregarCarteira(); 
+        } catch (e) { mostrarNotificacao("Erro ao depositar.", "error"); }
+    }
+
+    async function zerarCarteira() {
+        if(!confirm("Tem certeza?")) return;
+        try {
+            const res = await fetch('/moedas/zerar', { method: 'POST' });
+            mostrarNotificacao(await res.text(), "info");
+            carregarCarteira();
+        } catch(e) { mostrarNotificacao("Erro ao zerar.", "error"); }
+    }
+
+    async function negociar(tipo, simbolo) {
+        // Para compra/venda ainda usamos prompt pois precisaria de um modal complexo
+        // Mas a resposta será no toast
+        const qtd = prompt(`Quantos ${simbolo} deseja ${tipo}?`);
+        if(!qtd) return;
+        
+        try {
+            const res = await fetch(`/moedas/${tipo}?simbolo=${simbolo}&quantidade=${qtd}`, { method: 'POST' });
+            const msg = await res.text();
+            
+            // Verifica se a mensagem tem "Sucesso" para decidir a cor
+            if(msg.includes("Sucesso")) mostrarNotificacao(msg, "success");
+            else mostrarNotificacao(msg, "error");
+            
+            carregarCarteira();
+        } catch(e) { mostrarNotificacao("Erro na transação.", "error"); }
+    }
+    
+    async function consultarIA(nome) {
+        const div = document.getElementById('ai-result');
+        div.style.display = 'block';
+        div.innerHTML = "Consultando IA...";
+        try {
+            const res = await fetch(`/moedas/analise?nome=${nome}`);
+            div.innerHTML = `<strong>🤖 ${nome}:</strong><br>` + await res.text();
+        } catch(e) { div.innerHTML = "Erro na IA."; }
+    }
+
+    // --- PERFIL ---
+    async function carregarPerfil() {
+        try {
+            const res = await fetch('/moedas/usuario');
+            if(res.ok) {
+                const u = await res.json();
+                document.getElementById('input-nome').value = u.nome;
+                document.getElementById('input-email').value = u.email;
+                document.getElementById('input-cpf').value = u.cpf || "";
+            }
+        } catch(e) { console.log("Perfil ainda não carregado"); }
+    }
+
+    async function salvarPerfil() {
+        const nome = document.getElementById('input-nome').value;
+        const email = document.getElementById('input-email').value;
+        await fetch(`/moedas/usuario?nome=${nome}&email=${email}`, { method: 'POST' });
+        mostrarNotificacao("Perfil salvo com sucesso!", "success");
+    }
+
+    // Inicia
+    carregarMercado();
+    carregarCarteira();
+    carregarPerfil();
+</script>
+</body>
+</html>
