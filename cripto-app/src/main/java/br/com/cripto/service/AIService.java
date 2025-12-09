@@ -20,13 +20,14 @@ public class AIService {
     }
 
     // Mantendo o modelo flash que é rápido e barato
-    private static final String MODEL_NAME = "gemini-2.5-flash"; 
+    private static final String MODEL_NAME = "gemini-1.5-flash-001
+"; 
 
     public String analisarTendencia(String moeda) {
         try {
             String apiKey = getApiKey();
             // AQUI ESTÁ A CORREÇÃO: Mudamos de v1beta para v1
-            String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL_NAME + ":generateContent?key=" + apiKey;
+            String apiUrl = "https://generativelanguage.googleapis.com/v1/models/" + MODEL_NAME + ":generateContent?key=" + apiKey;
 
             RestTemplate restTemplate = new RestTemplate();
             
