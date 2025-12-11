@@ -38,7 +38,7 @@ public class AIService {
             
             // Montagem da URL da API do Google.
             // Utilizamos a versão 'v1beta' que garante compatibilidade total com o modelo Flash.
-            String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/" + MODEL_NAME + ":generateContent?key=" + apiKey;
+            String apiUrl = "https://generativelanguage.googleapis.com/v1/models/" + MODEL_NAME + ":generateContent?key=" + apiKey;
 
             RestTemplate restTemplate = new RestTemplate();
             
