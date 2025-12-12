@@ -24,11 +24,11 @@ public class CryptoService {
             LocalDate.of(2006, 3, 27)
         );
 
-        // 2. Inicia a carteira com R$ 5.000,00 de saldo
+        // Inicialização da carteira com saldo zerado (o saldo será definido ou depositado posteriormente)
         this.carteira = new Carteira(usuario, 0.00);
     }
     
-    // Método para o Controller conseguir ver o saldo atualizado
+    // Retorna a instância atual da carteira para consulta
     public Carteira getCarteira() {
         return carteira;
     }
@@ -40,7 +40,7 @@ public class CryptoService {
         return carteira.getUsuario(); // Pega o usuário de dentro da carteira
     }
 
-    // 2. Método para ATUALIZAR os dados (quando clicar em Salvar no site)
+    // Atualiza as informações de contato do usuário
     public String atualizarUsuario(String novoNome, String novoEmail) {
         Usuario user = carteira.getUsuario();
         
@@ -50,8 +50,11 @@ public class CryptoService {
         
         return "Perfil atualizado com sucesso!";
     }
-    // ------------------------------------
-
+    
+   /**
+     * Processa a compra de uma criptomoeda.
+     * Valida a existência da moeda e o saldo disponível antes de efetivar a transação.
+     */
     public String comprarCriptoMoeda(String simbolo, double quantidade) {
         // Busca a moeda pelo símbolo (ex: "BTC")
         CriptoMoeda criptoMoeda = Cripto.getCriptoMoedaPorSimbolo(simbolo);
