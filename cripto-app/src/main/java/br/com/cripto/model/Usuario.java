@@ -2,6 +2,10 @@ package br.com.cripto.model;
 
 import java.time.LocalDate;
 
+/**
+ * Representa um usuário cadastrado na plataforma.
+ * Contém dados pessoais, informações de contato e credenciais de acesso.
+ */
 public class Usuario {
     private String nome;
     private String cpf;
@@ -19,7 +23,7 @@ public class Usuario {
         this.dataNascimento = dataNascimento;
     }
 
-    // --- GETTERS (Para o site ler os dados) ---
+   // --- Métodos de Acesso (Getters) ---
     public String getNome() { return nome; }
     public String getCpf() { return cpf; }
     public String getEmail() { return email; }
@@ -27,7 +31,7 @@ public class Usuario {
     public String getSenha() { return senha; }
     public LocalDate getDataNascimento() { return dataNascimento; }
 
-    // --- SETTERS (Para o site alterar os dados) ---
+    // --- Métodos de Atualização (Setters) ---
     public void setNome(String nome) { this.nome = nome; }
     public void setCpf(String cpf) { this.cpf = cpf; }
     public void setEmail(String email) { this.email = email; }
