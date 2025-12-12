@@ -1,33 +1,50 @@
 package br.com.cripto.model;
 
+/**
+ * Representa uma Criptomoeda disponível para negociação no sistema.
+ * Contém informações básicas de identificação e valores de cotação.
+ */
 public class CriptoMoeda {
+    
     private String nome;
-    private String simbolo;
+    private String simbolo;       // Ex: BTC, ETH
     private double precoAtual;
-    // NOVIDADE: Campo para guardar quanto custava antes
+    
+    // Armazena a cotação prévia para permitir cálculos de variação de preço
     private double precoAnterior;
 
     public CriptoMoeda(String nome, String simbolo, double precoAtual) {
         this.nome = nome;
         this.simbolo = simbolo;
         this.precoAtual = precoAtual;
-        // Ao criar, o preço anterior é igual ao atual
+        // Na criação do objeto, o preço anterior é inicializado igual ao atual para evitar inconsistências
         this.precoAnterior = precoAtual;
     }
 
-    // Getters
-    public String getNome() { return nome; }
-    public String getSimbolo() { return simbolo; }
-    public double getPrecoAtual() { return precoAtual; }
-    // NOVO GETTER
-    public double getPrecoAnterior() { return precoAnterior; }
+    // --- Métodos de Acesso (Getters) ---
 
-    // Setters
+    public String getNome() { 
+        return nome; 
+    }
+    
+    public String getSimbolo() { 
+        return simbolo; 
+    }
+    
+    public double getPrecoAtual() { 
+        return precoAtual; 
+    }
+    
+    public double getPrecoAnterior() { 
+        return precoAnterior; 
+    }
+
+    // --- Métodos de Atualização (Setters) ---
+
     public void setPrecoAtual(double novoPreco) {
         this.precoAtual = novoPreco;
     }
     
-    // NOVO SETTER
     public void setPrecoAnterior(double precoAnterior) {
         this.precoAnterior = precoAnterior;
     }
