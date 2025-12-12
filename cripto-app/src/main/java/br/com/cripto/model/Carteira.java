@@ -5,70 +5,92 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Representa a carteira digital do usuário.
+ * Responsável por gerenciar o saldo em Reais, a posse de criptomoedas e o histórico de transações.
+ */
 public class Carteira {
+
     private Usuario usuario;
     private double saldoReais;
-    private Map<String, Double> criptoMoedas; // Guarda quanto tem de cada moeda (Ex: "BTC" -> 0.5)
     
-    // Método novo que faltava!
-    public Usuario getUsuario() {
-        return usuario;
-    }
-    // NOVIDADE: A lista para guardar o histórico!
+    // Armazena a quantidade que o usuário possui de cada criptomoeda (Ex: "BTC" -> 0.5)
+    private Map<String, Double> criptoMoedas; 
+    
+    // Lista que armazena o histórico de todas as operações (compras e vendas)
     private List<Transacao> historicoTransacoes;
 
     public Carteira(Usuario usuario, double saldoInicial) {
         this.usuario = usuario;
         this.saldoReais = saldoInicial;
         this.criptoMoedas = new HashMap<>();
-        this.historicoTransacoes = new ArrayList<>(); // Começa com a lista vazia
+        this.historicoTransacoes = new ArrayList<>(); // Inicia o histórico vazio
+    }
+
+    // --- Métodos de Consulta ---
+
+    public Usuario getUsuario() {
+        return usuario;
     }
 
     public double getSaldo() {
         return saldoReais;
     }
 
+    // Retorna todas as criptomoedas que o usuário possui
     public Map<String, Double> getMoedas() {
         return criptoMoedas;
     }
     
-    // Novo método para quem quiser ver o extrato
+    // Retorna o extrato de movimentações
     public List<Transacao> getHistorico() {
         return historicoTransacoes;
     }
 
+    // Verifica a quantidade disponível de uma moeda específica pelo símbolo
     public double getQuantidadeMoeda(String simbolo) {
         return criptoMoedas.getOrDefault(simbolo, 0.0);
     }
 
-    // Método para COMPRAR
+    // --- Operações Financeiras ---
+
+    /**
+     * Realiza a compra de uma criptomoeda.
+     * Verifica o saldo, desconta o valor, adiciona a moeda à carteira e registra no histórico.
+     */
     public boolean comprar(CriptoMoeda moeda, double quantidade) {
         double custoTotal = quantidade * moeda.getPrecoAtual();
         
+        // Verifica se o usuário tem saldo suficiente em Reais
         if (saldoReais >= custoTotal) {
             saldoReais -= custoTotal;
             
-            // Atualiza a quantidade da moeda
+            // Atualiza a quantidade da moeda na carteira (soma o que já tinha com a nova compra)
             double novaQuantidade = getQuantidadeMoeda(moeda.getSimbolo()) + quantidade;
             criptoMoedas.put(moeda.getSimbolo(), novaQuantidade);
             
-            // NOVIDADE: Grava na lista que comprou!
+            // Registra a operação no histórico
             Transacao t = new Transacao(moeda.getSimbolo(), quantidade, moeda.getPrecoAtual(), "COMPRA");
             historicoTransacoes.add(t);
             
-            return true;
+            return true; // Compra realizada com sucesso
         }
-        return false;
+        return false; // Saldo insuficiente
     }
 
-    // Método para VENDER
+    /**
+     * Realiza a venda de uma criptomoeda.
+     * Verifica se o usuário possui a moeda, remove a quantidade, adiciona o valor em Reais e registra no histórico.
+     */
     public boolean vender(CriptoMoeda moeda, double quantidade) {
         double quantidadeAtual = getQuantidadeMoeda(moeda.getSimbolo());
         
+        // Verifica se o usuário tem a quantidade de moeda necessária para vender
         if (quantidadeAtual >= quantidade) {
             double valorVenda = quantidade * moeda.getPrecoAtual();
             saldoReais += valorVenda;
             
+            // Atualiza a carteira: remove a moeda se zerar ou apenas diminui a quantidade
             double novaQuantidade = quantidadeAtual - quantidade;
             if (novaQuantidade == 0) {
                 criptoMoedas.remove(moeda.getSimbolo());
@@ -76,26 +98,30 @@ public class Carteira {
                 criptoMoedas.put(moeda.getSimbolo(), novaQuantidade);
             }
             
-            // NOVIDADE: Grava na lista que vendeu!
+            // Registra a operação no histórico
             Transacao t = new Transacao(moeda.getSimbolo(), quantidade, moeda.getPrecoAtual(), "VENDA");
             historicoTransacoes.add(t);
             
-            return true;
+            return true; // Venda realizada com sucesso
         }
-        return false;
+        return false; // Quantidade de moeda insuficiente
     }
     
-    // Método auxiliar para mostrar saldo na tela (Console) se precisar
+    // --- Métodos Auxiliares ---
+
+    // Exibe o saldo atual formatado no console
     public void mostrarCarteira() {
         System.out.println("Saldo: R$ " + String.format("%.2f", saldoReais));
     }
-    // Método para ADICIONAR dinheiro (Depósito)
+
+    // Adiciona saldo em Reais à carteira (Depósito)
     public void depositar(double valor) {
         if (valor > 0) {
             this.saldoReais += valor;
         }
     }
-    // Método para definir o saldo (usado para zerar)
+
+    // Define o saldo manualmente (pode ser usado para resetar ou corrigir valores)
     public void setSaldo(double novoSaldo) {
         this.saldoReais = novoSaldo;
     }
